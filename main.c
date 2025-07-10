@@ -30,7 +30,7 @@ void test03(void)
         .event_mask = ExposureMask|SubstructureNotifyMask
     };
     
-    font = XftFontOpenName(display,screen_num,"Deja Vu Sans Mono:size=10");
+    font = XftFontOpenName(display,screen_num,"Deja Vu Sans Mono:pixelsize=12");
     window = XCreateWindow(display,DefaultRootWindow(display), 0,0,  400,300,  
                                          5, DefaultDepth(display,screen_num), 
                                          InputOutput, 
@@ -64,11 +64,33 @@ void test03(void)
 
                 int line = 1, xpos = 0, ypos = font->height*line;
                 uint32_t unicode_c;
-                for(int d=0; d<2048; ++d){
+                for(int d=0; d<16384; ++d){
                     unicode_c = (uint32_t)0x00 << 24 |
                                 (uint32_t)0x00 << 16 |
                                 (uint32_t)0x00 <<  8 |
                                 (uint32_t)   d <<  0 ;
+                    
+                    uint32_t idx = XftCharIndex(display, font, unicode_c);
+                    if(idx){
+                        spex.font = font;
+                        spex.glyph = idx;
+                        if(xpos + font->max_advance_width > ret_w){
+                            ++line;
+                            xpos = 0;
+                            ypos = font->height*line;
+                        }
+                        spex.x = xpos;
+                        spex.y = ypos;
+                        XftDrawGlyphFontSpec(draw,&color,&spex,1);
+                        xpos += font->max_advance_width;
+                    }
+                }
+
+                for(int d=0; d<100; ++d){
+                    unicode_c = (uint32_t)0x00 << 24 |
+                                (uint32_t)0x00 << 16 |
+                                (uint32_t)0x25 <<  8 |
+                                (uint32_t)0x88 <<  0 ;
                     
                     uint32_t idx = XftCharIndex(display, font, unicode_c);
                     if(idx){
