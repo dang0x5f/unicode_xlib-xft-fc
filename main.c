@@ -4,7 +4,7 @@
 
 void test01(void);  // Random function calls
 int test02(void);   // FontConfig Pattern Match Example
-void test03(void);  // characters 161-170
+void test03(void);  // characters 0-2048
 
 int main(void)
 {
@@ -55,11 +55,16 @@ void test03(void)
                 /* XftDrawStringUtf8(draw,&color,font,0, */
                 /*         font->ascent*line+font->descent*(line-1),"Line",4); */
 
+                Window ret_win;
+                int ret_x, ret_y, ret_w, ret_h, ret_border, ret_depth;
+                XGetGeometry(display,window,&ret_win,&ret_x, &ret_y, 
+                             &ret_w, &ret_h, &ret_border, &ret_depth);
+
                 XftGlyphFontSpec spex;
 
-                int xpos = 0, ypos = font->height;
+                int line = 1, xpos = 0, ypos = font->height*line;
                 uint32_t unicode_c;
-                for(int d=161; d<255; ++d){
+                for(int d=0; d<2048; ++d){
                     unicode_c = (uint32_t)0x00 << 24 |
                                 (uint32_t)0x00 << 16 |
                                 (uint32_t)0x00 <<  8 |
@@ -69,10 +74,15 @@ void test03(void)
                     if(idx){
                         spex.font = font;
                         spex.glyph = idx;
+                        if(xpos + font->max_advance_width > ret_w){
+                            ++line;
+                            xpos = 0;
+                            ypos = font->height*line;
+                        }
                         spex.x = xpos;
                         spex.y = ypos;
-                        xpos += font->max_advance_width;
                         XftDrawGlyphFontSpec(draw,&color,&spex,1);
+                        xpos += font->max_advance_width;
                     }
                 }
                 
