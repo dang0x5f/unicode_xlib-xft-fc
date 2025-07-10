@@ -1,7 +1,7 @@
 .POSIX:
 CC := clang
 
-CFLAGS := -std=c11 -ggdb -Wall -Wextra -pedantic
+CFLAGS := -std=c23 -ggdb -Wall -Wextra -pedantic
 
 X11CPPFLAGS := `pkg-config --cflags x11`
 X11LDFLAGS  := `pkg-config --libs x11`

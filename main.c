@@ -2,15 +2,95 @@
 #include <X11/Xft/Xft.h>
 #include <fontconfig/fontconfig.h>
 
-void test01(void); // Random function calls
-int test02(void);  // FontConfig Pattern Match Example
+void test01(void);  // Random function calls
+int test02(void);   // FontConfig Pattern Match Example
+void test03(void);  // characters 161-170
 
 int main(void)
 {
     /* test01(); */
-    printf("return: %d\n",test02());
+    /* printf("return: %d\n",test02()); */
+    test03();
 
     return(0);
+}
+
+void test03(void)
+{
+    XftFont *font;
+    Window window;
+
+    Display *display = XOpenDisplay(NULL);
+    int screen_num = DefaultScreen(display);
+    Colormap colormap = DefaultColormap(display,screen_num);
+
+    int valuemask = CWEventMask|CWBackPixel;
+    XSetWindowAttributes attributes = { 
+        .background_pixel = 0xfffdd0,
+        .event_mask = ExposureMask|SubstructureNotifyMask
+    };
+    
+    font = XftFontOpenName(display,screen_num,"Deja Vu Sans Mono:size=10");
+    window = XCreateWindow(display,DefaultRootWindow(display), 0,0,  400,300,  
+                                         5, DefaultDepth(display,screen_num), 
+                                         InputOutput, 
+                                         DefaultVisual(display, screen_num),
+                                         valuemask, &attributes);
+    XftDraw *draw = XftDrawCreate(display, window, 
+                        DefaultVisual(display,screen_num),colormap);
+
+    XftColor color;
+    XftColorAllocName(display,DefaultVisual(display,screen_num),colormap,"#555555",&color);
+
+    XMapWindow(display,window);
+    XSync(display,false);
+
+    XEvent ev;
+    while(1){
+        XNextEvent(display,&ev);
+
+        switch(ev.type){
+            case Expose:
+                /* for(int line=1; line<10; ++line) */
+                /* XftDrawStringUtf8(draw,&color,font,0, */
+                /*         font->ascent*line+font->descent*(line-1),"Line",4); */
+
+                XftGlyphFontSpec spex;
+
+                int xpos = 0, ypos = font->height;
+                uint32_t unicode_c;
+                for(int d=161; d<255; ++d){
+                    unicode_c = (uint32_t)0x00 << 24 |
+                                (uint32_t)0x00 << 16 |
+                                (uint32_t)0x00 <<  8 |
+                                (uint32_t)   d <<  0 ;
+                    
+                    uint32_t idx = XftCharIndex(display, font, unicode_c);
+                    if(idx){
+                        spex.font = font;
+                        spex.glyph = idx;
+                        spex.x = xpos;
+                        spex.y = ypos;
+                        xpos += font->max_advance_width;
+                        XftDrawGlyphFontSpec(draw,&color,&spex,1);
+                    }
+                }
+                
+                /* uint32_t idx = XftCharIndex(display, font, unicode_c); */
+                /* if(idx){ */
+                /*     spex.font = font; */
+                /*     spex.glyph = idx; */
+                /*     spex.x = xpos; */
+                /*     spex.y = ypos; */
+                /*     xpos += font->max_advance_width; */
+                /*     X */
+                /* } */
+
+                break;
+        }
+
+    }
+    
 }
 
 /* FontConfig Pattern Match Example */
